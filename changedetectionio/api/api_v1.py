@@ -19,16 +19,17 @@ watch_base_config = watch_base()
 schema = api_schema.build_watch_json_schema(watch_base_config)
 
 schema_create_watch = copy.deepcopy(schema)
-schema_create_watch['required'] = ['url']
+schema_create_watch["required"] = ["url"]
 
 schema_update_watch = copy.deepcopy(schema)
-schema_update_watch['additionalProperties'] = False
+schema_update_watch["additionalProperties"] = False
+
 
 class Watch(Resource):
     def __init__(self, **kwargs):
         # datastore is a black box dependency
-        self.datastore = kwargs['datastore']
-        self.update_q = kwargs['update_q']
+        self.datastore = kwargs["datastore"]
+        self.update_q = kwargs["update_q"]
 
     # Get information about a single watch, excluding the history list (can be large)
     # curl http://localhost:5000/api/v1/watch/<string:uuid>
@@ -53,31 +54,34 @@ class Watch(Resource):
         @apiSuccess (200) {JSON} WatchJSON JSON Full JSON object of the watch
         """
         from copy import deepcopy
-        watch = deepcopy(self.datastore.data['watching'].get(uuid))
-        if not watch:
-            abort(404, message='No watch exists with the UUID of {}'.format(uuid))
 
-        if request.args.get('recheck'):
-            self.update_q.put(queuedWatchMetaData.PrioritizedItem(priority=1, item={'uuid': uuid}))
+        watch = deepcopy(self.datastore.data["watching"].get(uuid))
+        if not watch:
+            abort(404, message="No watch exists with the UUID of {}".format(uuid))
+
+        if request.args.get("recheck"):
+            self.update_q.put(
+                queuedWatchMetaData.PrioritizedItem(priority=1, item={"uuid": uuid})
+            )
             return "OK", 200
-        if request.args.get('paused', '') == 'paused':
-            self.datastore.data['watching'].get(uuid).pause()
+        if request.args.get("paused", "") == "paused":
+            self.datastore.data["watching"].get(uuid).pause()
             return "OK", 200
-        elif request.args.get('paused', '') == 'unpaused':
-            self.datastore.data['watching'].get(uuid).unpause()
+        elif request.args.get("paused", "") == "unpaused":
+            self.datastore.data["watching"].get(uuid).unpause()
             return "OK", 200
-        if request.args.get('muted', '') == 'muted':
-            self.datastore.data['watching'].get(uuid).mute()
+        if request.args.get("muted", "") == "muted":
+            self.datastore.data["watching"].get(uuid).mute()
             return "OK", 200
-        elif request.args.get('muted', '') == 'unmuted':
-            self.datastore.data['watching'].get(uuid).unmute()
+        elif request.args.get("muted", "") == "unmuted":
+            self.datastore.data["watching"].get(uuid).unmute()
             return "OK", 200
 
         # Return without history, get that via another API call
         # Properties are not returned as a JSON, so add the required props manually
-        watch['history_n'] = watch.history_n
-        watch['last_changed'] = watch.last_changed
-        watch['viewed'] = watch.viewed
+        watch["history_n"] = watch.history_n
+        watch["last_changed"] = watch.last_changed
+        watch["viewed"] = watch.viewed
         return watch
 
     @auth.check_token
@@ -91,11 +95,11 @@ class Watch(Resource):
         @apiGroup Watch
         @apiSuccess (200) {String} OK Was deleted
         """
-        if not self.datastore.data['watching'].get(uuid):
-            abort(400, message='No watch exists with the UUID of {}'.format(uuid))
+        if not self.datastore.data["watching"].get(uuid):
+            abort(400, message="No watch exists with the UUID of {}".format(uuid))
 
         self.datastore.delete(uuid)
-        return 'OK', 204
+        return "OK", 204
 
     @auth.check_token
     @expects_json(schema_update_watch)
@@ -113,14 +117,19 @@ class Watch(Resource):
         @apiSuccess (200) {String} OK Was updated
         @apiSuccess (500) {String} ERR Some other error
         """
-        watch = self.datastore.data['watching'].get(uuid)
+        watch = self.datastore.data["watching"].get(uuid)
         if not watch:
-            abort(404, message='No watch exists with the UUID of {}'.format(uuid))
+            abort(404, message="No watch exists with the UUID of {}".format(uuid))
 
-        if request.json.get('proxy'):
+        if request.json.get("proxy"):
             plist = self.datastore.proxy_list
-            if not request.json.get('proxy') in plist:
-                return "Invalid proxy choice, currently supported proxies are '{}'".format(', '.join(plist)), 400
+            if not request.json.get("proxy") in plist:
+                return (
+                    "Invalid proxy choice, currently supported proxies are '{}'".format(
+                        ", ".join(plist)
+                    ),
+                    400,
+                )
 
         watch.update(request.json)
 
@@ -130,7 +139,7 @@ class Watch(Resource):
 class WatchHistory(Resource):
     def __init__(self, **kwargs):
         # datastore is a black box dependency
-        self.datastore = kwargs['datastore']
+        self.datastore = kwargs["datastore"]
 
     # Get a list of available history for a watch by UUID
     # curl http://localhost:5000/api/v1/watch/<string:uuid>/history
@@ -151,16 +160,16 @@ class WatchHistory(Resource):
         @apiSuccess (200) {String} OK
         @apiSuccess (404) {String} ERR Not found
         """
-        watch = self.datastore.data['watching'].get(uuid)
+        watch = self.datastore.data["watching"].get(uuid)
         if not watch:
-            abort(404, message='No watch exists with the UUID of {}'.format(uuid))
+            abort(404, message="No watch exists with the UUID of {}".format(uuid))
         return watch.history, 200
 
 
 class WatchSingleHistory(Resource):
     def __init__(self, **kwargs):
         # datastore is a black box dependency
-        self.datastore = kwargs['datastore']
+        self.datastore = kwargs["datastore"]
 
     @auth.check_token
     def get(self, uuid, timestamp):
@@ -175,17 +184,17 @@ class WatchSingleHistory(Resource):
         @apiSuccess (200) {String} OK
         @apiSuccess (404) {String} ERR Not found
         """
-        watch = self.datastore.data['watching'].get(uuid)
+        watch = self.datastore.data["watching"].get(uuid)
         if not watch:
             abort(404, message=f"No watch exists with the UUID of {uuid}")
 
         if not len(watch.history):
             abort(404, message=f"Watch found but no history exists for the UUID {uuid}")
 
-        if timestamp == 'latest':
+        if timestamp == "latest":
             timestamp = list(watch.history.keys())[-1]
 
-        if request.args.get('html'):
+        if request.args.get("html"):
             content = watch.get_fetched_html(timestamp)
             if content:
                 response = make_response(content, 200)
@@ -204,17 +213,17 @@ class WatchSingleHistory(Resource):
 class CreateWatch(Resource):
     def __init__(self, **kwargs):
         # datastore is a black box dependency
-        self.datastore = kwargs['datastore']
-        self.update_q = kwargs['update_q']
+        self.datastore = kwargs["datastore"]
+        self.update_q = kwargs["update_q"]
 
     @auth.check_token
     @expects_json(schema_create_watch)
     def post(self):
         """
         @api {post} /api/v1/watch Create a single watch
-        @apiDescription Requires atleast `url` set, can accept the same structure as <a href="#api-Watch-Watch">get single watch information</a> to create.
+        @apiDescription Requires at least `url` set, can accept the same structure as <a href="#api-Watch-Watch">get single watch information</a> to create.
         @apiExample {curl} Example usage:
-            curl http://localhost:5000/api/v1/watch -H"x-api-key:813031b16330fe25e3780cf0325daa45" -H "Content-Type: application/json" -d '{"url": "https://my-nice.com" , "tag": "nice list"}'
+            curl http://localhost:5000/api/v1/watch -H "x-api-key:813031b16330fe25e3780cf0325daa45" -H "Content-Type: application/json" -d '{"url": "https://my-nice.com" , "tag": "nice list"}'
         @apiName Create
         @apiGroup Watch
         @apiSuccess (200) {String} OK Was created
@@ -222,32 +231,48 @@ class CreateWatch(Resource):
         """
 
         json_data = request.get_json()
-        url = json_data['url'].strip()
+        url = json_data["url"].strip()
 
         # If hosts that only contain alphanumerics are allowed ("localhost" for example)
-        allow_simplehost = not strtobool(os.getenv('BLOCK_SIMPLEHOSTS', 'False'))
+        allow_simplehost = not strtobool(os.getenv("BLOCK_SIMPLEHOSTS", "False"))
         if not validators.url(url, simple_host=allow_simplehost):
             return "Invalid or unsupported URL", 400
 
-        if json_data.get('proxy'):
+        if json_data.get("proxy"):
             plist = self.datastore.proxy_list
-            if not json_data.get('proxy') in plist:
-                return "Invalid proxy choice, currently supported proxies are '{}'".format(', '.join(plist)), 400
+            if not json_data.get("proxy") in plist:
+                return (
+                    "Invalid proxy choice, currently supported proxies are '{}'".format(
+                        ", ".join(plist)
+                    ),
+                    400,
+                )
 
         extras = copy.deepcopy(json_data)
 
         # Because we renamed 'tag' to 'tags' but don't want to change the API (can do this in v2 of the API)
         tags = None
-        if extras.get('tag'):
-            tags = extras.get('tag')
-            del extras['tag']
+        if extras.get("tag"):
+            tags = extras.get("tag")
+            del extras["tag"]
 
-        del extras['url']
+        del extras["url"]
+
+        # ! use "restock_diff" by default
+        extras["processor"] = extras.get(
+            "processor", "restock_diff"
+        )  # ! or "text_json_diff"
+        extras["fetch_backend"] = extras.get(
+            "fetch_backend", "html_requests"
+        )  # ! or 'html_webdriver'
 
         new_uuid = self.datastore.add_watch(url=url, extras=extras, tag=tags)
+
         if new_uuid:
-            self.update_q.put(queuedWatchMetaData.PrioritizedItem(priority=1, item={'uuid': new_uuid}))
-            return {'uuid': new_uuid}, 201
+            self.update_q.put(
+                queuedWatchMetaData.PrioritizedItem(priority=1, item={"uuid": new_uuid})
+            )
+            return {"uuid": new_uuid}, 201
         else:
             return "Invalid or unsupported URL", 400
 
@@ -283,35 +308,41 @@ class CreateWatch(Resource):
         """
         list = {}
 
-        tag_limit = request.args.get('tag', '').lower()
+        tag_limit = request.args.get("tag", "").lower()
 
-
-        for uuid, watch in self.datastore.data['watching'].items():
+        for uuid, watch in self.datastore.data["watching"].items():
             # Watch tags by name (replace the other calls?)
             tags = self.datastore.get_all_tags_for_watch(uuid=uuid)
-            if tag_limit and not any(v.get('title').lower() == tag_limit for k, v in tags.items()):
+            if tag_limit and not any(
+                v.get("title").lower() == tag_limit for k, v in tags.items()
+            ):
                 continue
 
             list[uuid] = {
-                'last_changed': watch.last_changed,
-                'last_checked': watch['last_checked'],
-                'last_error': watch['last_error'],
-                'title': watch['title'],
-                'url': watch['url'],
-                'viewed': watch.viewed
+                "last_changed": watch.last_changed,
+                "last_checked": watch["last_checked"],
+                "last_error": watch["last_error"],
+                "title": watch["title"],
+                "url": watch["url"],
+                "viewed": watch.viewed,
+                "restock": watch.get("restock", None),
+                # "restock": getattr(watch, "restock", False),
             }
 
-        if request.args.get('recheck_all'):
-            for uuid in self.datastore.data['watching'].keys():
-                self.update_q.put(queuedWatchMetaData.PrioritizedItem(priority=1, item={'uuid': uuid}))
-            return {'status': "OK"}, 200
+        if request.args.get("recheck_all"):
+            for uuid in self.datastore.data["watching"].keys():
+                self.update_q.put(
+                    queuedWatchMetaData.PrioritizedItem(priority=1, item={"uuid": uuid})
+                )
+            return {"status": "OK"}, 200
 
         return list, 200
+
 
 class Import(Resource):
     def __init__(self, **kwargs):
         # datastore is a black box dependency
-        self.datastore = kwargs['datastore']
+        self.datastore = kwargs["datastore"]
 
     @auth.check_token
     def post(self):
@@ -328,24 +359,29 @@ class Import(Resource):
 
         extras = {}
 
-        if request.args.get('proxy'):
+        if request.args.get("proxy"):
             plist = self.datastore.proxy_list
-            if not request.args.get('proxy') in plist:
-                return "Invalid proxy choice, currently supported proxies are '{}'".format(', '.join(plist)), 400
+            if not request.args.get("proxy") in plist:
+                return (
+                    "Invalid proxy choice, currently supported proxies are '{}'".format(
+                        ", ".join(plist)
+                    ),
+                    400,
+                )
             else:
-                extras['proxy'] = request.args.get('proxy')
+                extras["proxy"] = request.args.get("proxy")
 
-        dedupe = strtobool(request.args.get('dedupe', 'true'))
+        dedupe = strtobool(request.args.get("dedupe", "true"))
 
-        tags = request.args.get('tag')
-        tag_uuids = request.args.get('tag_uuids')
+        tags = request.args.get("tag")
+        tag_uuids = request.args.get("tag_uuids")
 
         if tag_uuids:
-            tag_uuids = tag_uuids.split(',')
+            tag_uuids = tag_uuids.split(",")
 
-        urls = request.get_data().decode('utf8').splitlines()
+        urls = request.get_data().decode("utf8").splitlines()
         added = []
-        allow_simplehost = not strtobool(os.getenv('BLOCK_SIMPLEHOSTS', 'False'))
+        allow_simplehost = not strtobool(os.getenv("BLOCK_SIMPLEHOSTS", "False"))
         for url in urls:
             url = url.strip()
             if not len(url):
@@ -358,16 +394,19 @@ class Import(Resource):
             if dedupe and self.datastore.url_exists(url):
                 continue
 
-            new_uuid = self.datastore.add_watch(url=url, extras=extras, tag=tags, tag_uuids=tag_uuids)
+            new_uuid = self.datastore.add_watch(
+                url=url, extras=extras, tag=tags, tag_uuids=tag_uuids
+            )
             added.append(new_uuid)
 
         return added
 
+
 class SystemInfo(Resource):
     def __init__(self, **kwargs):
         # datastore is a black box dependency
-        self.datastore = kwargs['datastore']
-        self.update_q = kwargs['update_q']
+        self.datastore = kwargs["datastore"]
+        self.update_q = kwargs["update_q"]
 
     @auth.check_token
     def get(self):
@@ -388,11 +427,12 @@ class SystemInfo(Resource):
         @apiGroup System Information
         """
         import time
+
         overdue_watches = []
 
         # Check all watches and report which have not been checked but should have been
 
-        for uuid, watch in self.datastore.data.get('watching', {}).items():
+        for uuid, watch in self.datastore.data.get("watching", {}).items():
             # see if now - last_checked is greater than the time that should have been
             # this is not super accurate (maybe they just edited it) but better than nothing
             t = watch.threshold_seconds()
@@ -400,16 +440,17 @@ class SystemInfo(Resource):
                 # Use the system wide default
                 t = self.datastore.threshold_seconds
 
-            time_since_check = time.time() - watch.get('last_checked')
+            time_since_check = time.time() - watch.get("last_checked")
 
             # Allow 5 minutes of grace time before we decide it's overdue
             if time_since_check - (5 * 60) > t:
                 overdue_watches.append(uuid)
         from changedetectionio import __version__ as main_version
+
         return {
-                   'queue_size': self.update_q.qsize(),
-                   'overdue_watches': overdue_watches,
-                   'uptime': round(time.time() - self.datastore.start_time, 2),
-                   'watch_count': len(self.datastore.data.get('watching', {})),
-                   'version': main_version
-               }, 200
+            "queue_size": self.update_q.qsize(),
+            "overdue_watches": overdue_watches,
+            "uptime": round(time.time() - self.datastore.start_time, 2),
+            "watch_count": len(self.datastore.data.get("watching", {})),
+            "version": main_version,
+        }, 200

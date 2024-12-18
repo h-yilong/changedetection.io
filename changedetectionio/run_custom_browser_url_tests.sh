@@ -8,7 +8,7 @@
 set -x
 
 # A extra browser is configured, but we never chose to use it, so it should NOT show in the logs
-docker run --rm -e "PLAYWRIGHT_DRIVER_URL=ws://sockpuppetbrowser:3000" --network changedet-network test-changedetectionio  bash -c 'cd changedetectionio;pytest tests/custom_browser_url/test_custom_browser_url.py::test_request_not_via_custom_browser_url'
+docker run --rm -e "PLAYWRIGHT_DRIVER_URL=ws://localhost:3333" --network changedet-network test-changedetectionio  bash -c 'cd changedetectionio;pytest tests/custom_browser_url/test_custom_browser_url.py::test_request_not_via_custom_browser_url'
 docker logs sockpuppetbrowser-custom-url &>log-custom.txt
 grep 'custom-browser-search-string=1' log-custom.txt
 if [ $? -ne 1 ]
@@ -26,7 +26,7 @@ then
 fi
 
 # Special connect string should appear in the custom-url container, but not in the 'default' one
-docker run --rm -e "PLAYWRIGHT_DRIVER_URL=ws://sockpuppetbrowser:3000" --network changedet-network test-changedetectionio  bash -c 'cd changedetectionio;pytest tests/custom_browser_url/test_custom_browser_url.py::test_request_via_custom_browser_url'
+docker run --rm -e "PLAYWRIGHT_DRIVER_URL=ws://localhost:3333" --network changedet-network test-changedetectionio  bash -c 'cd changedetectionio;pytest tests/custom_browser_url/test_custom_browser_url.py::test_request_via_custom_browser_url'
 docker logs sockpuppetbrowser-custom-url &>log-custom.txt
 grep 'custom-browser-search-string=1' log-custom.txt
 if [ $? -ne 0 ]

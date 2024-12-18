@@ -210,7 +210,7 @@ class browsersteps_live_ui(steppable_browser_interface):
     if not command_executor:
         command_executor = os.getenv(
             "PLAYWRIGHT_DRIVER_URL",
-            'ws://playwright-chrome:3000'
+            'ws://localhost:3333'
         ).strip('"')
 
     browser_type = os.getenv("PLAYWRIGHT_BROWSER_TYPE", 'chromium').strip('"')

@@ -37,7 +37,7 @@ docker run --network changedet-network \
   --hostname cdio \
   -e "FLASK_SERVER_NAME=cdio" \
   -v `pwd`/tests/proxy_socks5/proxies.json-example-noauth:/app/changedetectionio/test-datastore/proxies.json \
-  -e "PLAYWRIGHT_DRIVER_URL=ws://sockpuppetbrowser:3000" \
+  -e "PLAYWRIGHT_DRIVER_URL=ws://localhost:3333" \
   --rm \
   test-changedetectionio \
   bash -c 'cd changedetectionio && pytest --live-server-host=0.0.0.0 --live-server-port=5004  -s tests/proxy_socks5/test_socks5_proxy_sources.py'

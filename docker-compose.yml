@@ -31,7 +31,7 @@ services:
   #
   #       Alternative target "Chrome" Playwright URL, do not use "'s or 's!
   #       "Playwright" is a driver/librarythat allows changedetection to talk to a Chrome or similar browser.
-  #      - PLAYWRIGHT_DRIVER_URL=ws://sockpuppetbrowser:3000
+  #      - PLAYWRIGHT_DRIVER_URL=ws://localhost:3333
   #
   #       Playwright proxy settings playwright_proxy_server, playwright_proxy_bypass, playwright_proxy_username, playwright_proxy_password
   #
@@ -52,7 +52,7 @@ services:
   #
   #        Hides the `Referer` header so that monitored websites can't see the changedetection.io hostname.
   #      - HIDE_REFERER=true
-  #        
+  #
   #        Default number of parallel/concurrent fetchers
   #      - FETCH_WORKERS=10
   #
@@ -67,7 +67,7 @@ services:
   #
   #        A valid timezone name to run as (for scheduling watch checking) see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
   #      - TZ=America/Los_Angeles
-  
+
       # Comment out ports: when using behind a reverse proxy , enable networks: etc.
       ports:
         - 5000:5000
@@ -76,7 +76,7 @@ services:
      # Used for fetching pages via WebDriver+Chrome where you need Javascript support.
      # Now working on arm64 (needs testing on rPi - tested on Oracle ARM instance)
      # replace image with seleniarm/standalone-chromium:4.0.0-20211213
-     
+
      # If WEBDRIVER or PLAYWRIGHT are enabled, changedetection container depends on that
      # and must wait before starting (substitute "browser-chrome" with "playwright-chrome" if last one is used)
 #      depends_on:

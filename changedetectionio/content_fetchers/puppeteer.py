@@ -30,7 +30,7 @@ class fetcher(Fetcher):
         else:
             # Fallback to fetching from system
             # .strip('"') is going to save someone a lot of time when they accidently wrap the env value
-            self.browser_connection_url = os.getenv("PLAYWRIGHT_DRIVER_URL", 'ws://playwright-chrome:3000').strip('"')
+            self.browser_connection_url = os.getenv("PLAYWRIGHT_DRIVER_URL", 'ws://localhost:3333').strip('"')
 
         # allow per-watch proxy selection override
         # @todo check global too?

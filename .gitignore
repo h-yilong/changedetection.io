@@ -27,3 +27,4 @@ test-datastore/
 
 # Memory consumption log
 test-memory.log
+.ds_store
