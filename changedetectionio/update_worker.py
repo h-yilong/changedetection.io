@@ -777,7 +777,7 @@ class update_worker(threading.Thread):
                 self.q.task_done()
 
                 requests.request(
-                    method="POST",
+                    method="PUT",
                     json=self.datastore.data["watching"][uuid],
                     url="http://localhost:7351/api/watch",
                     headers={"x-auth-token": "some secret token"},
